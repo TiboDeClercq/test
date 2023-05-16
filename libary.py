@@ -36,4 +36,27 @@ class S3ImageUploader:
         except Exception as e:
             print(f"Failed to upload image: {e}")
 
+def move_file(source_bucket, destination_bucket, source_key, destination_key):
+    s3_client = boto3.client("s3")
 
+    try:
+        # Copy the file to the destination bucket
+        copy_source = {
+            "Bucket": source_bucket,
+            "Key": source_key
+        }
+        s3_client.copy_object(
+            CopySource=copy_source,
+            Bucket=destination_bucket,
+            Key=destination_key
+        )
+
+        # Delete the file from the source bucket
+        s3_client.delete_object(
+            Bucket=source_bucket,
+            Key=source_key
+        )
+
+        print("File moved successfully!")
+    except Exception as e:
+        print(f"Failed to move file: {e}")

@@ -1,0 +1,140 @@
+import boto3
+import os
+
+textract = boto3.client('textract')
+s3 = boto3.client('s3')
+
+
+def lambda_handler(event, context):
+    # Get the S3 object key from the event
+    s3_key = event['Records'][0]['s3']['object']['key']
+    
+    # Define the input and output S3 bucket names
+    input_bucket = 'my-input-bucket'
+    output_bucket = 'my-output-bucket'
+    
+    snsRole = os.environ['SNS_ROLE']
+    snsTopic = os.environ['SNS_TOPIC']
+    output_bucket = os.environ['OUTPUT_BUCKET']
+    output_prefix = os.environ['OUTPUT_PREFIX']
+
+    return processMessage()
+
+
+    #Based on the prefix of the file name, determine the type of document
+    #and use the appropriate textract function to analyse the document
+    
+    
+
+def processMessage():
+    inputBucketName = contents['Records'][0]['s3']['bucket']['name']
+    key = content["Records"][0]["s3"]["object"]["key"]
+    # split the path <project>/<systemcode>/<filename>
+    path = key.split("/")
+    subsystem = path[0]
+    project = path[1]
+    method = path[2]
+    filename = path[3]
+
+    # decrypt the file and move it to the staged folder in the same bucket
+    # delete the original file from the bucket
+
+
+    #Determine wich method to use based on the prefix of the file name
+
+
+    if method == 'TextAnalysis':
+        response = analyseDocument(inputBucketName, s3_key)
+    elif method == ('TextDetection'):
+        response = documentTextDetection(inputBucketName, s3_key)
+    elif method == ('LendingDocumentAnalysis'):
+        response = lendingDocumentAnalysis(inputBucketName, s3_key)
+    elif method == ('ExpenseAnalysis'):
+        response = expenseAnalysis(inputBucketName, s3_key)
+    else:
+        print('File not supported')
+    
+
+
+#Textract AnalyseDocument
+def analyseDocument(bucket, document):
+    response = textract.start_document_analysis(
+        DocumentLocation={
+            'S3Object': {
+                'Bucket': bucket,
+                'Name': document
+            }
+        },
+        NotificationChannel={
+            'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
+            'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
+        },
+        OutputConfig={
+            'S3Bucket': bucket,
+            'S3Prefix': 'output'
+        }
+    )
+    return response
+
+#TextDetection
+def documentTextDetection(bucket, document):
+    response = textract.start_document_text_detection(
+        DocumentLocation={
+            'S3Object': {
+                'Bucket': bucket,
+                'Name': document
+            }
+        },
+        NotificationChannel={
+            'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
+            'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
+        },
+        OutputConfig={
+            'S3Bucket': bucket,
+            'S3Prefix': 'output'
+        }
+        
+    )
+    return response
+
+#Textract LendingDocumentAnalysis
+def lendingDocumentAnalysis(bucket, document):
+    response = textract.start_document_analysis(
+        DocumentLocation={
+            'S3Object': {
+                'Bucket': bucket,
+                'Name': document
+            }
+        },
+        FeatureTypes=['TABLES', 'FORMS'],
+        NotificationChannel={
+            'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
+            'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
+        },
+        OutputConfig={
+            'S3Bucket': bucket,
+            'S3Prefix': 'output'
+        }
+    )
+    return response
+
+#Textract ExpenseAnanlysis
+def expenseAnalysis(bucket, document):
+    response = textract.start_expense_analysis(
+        DocumentLocation={
+            'S3Object': {
+                'Bucket': bucket,
+                'Name': document
+            }
+        },
+        FeatureTypes=['TABLES', 'FORMS'],
+        NotificationChannel={
+            'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
+            'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
+        },
+        OutputConfig={
+            'S3Bucket': bucket,
+            'S3Prefix': 'output'
+        }
+    )
+    return response

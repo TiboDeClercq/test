@@ -152,3 +152,36 @@ def expenseAnalysis(bucket, document):
 #function that recursively encrypt files in a folder and move it to another folder
 def encryptFiles(bucket, folder, key):
     
+
+
+
+
+
+
+import boto3
+
+def rename_files_recursively(bucket_name, prefix, new_prefix):
+    s3_client = boto3.client('s3')
+    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+
+    for obj in response.get('Contents', []):
+        old_key = obj['Key']
+        new_key = obj['Key'].replace(prefix, new_prefix)
+
+        copy_source = {'Bucket': bucket_name, 'Key': old_key}
+        s3_client.copy_object(Bucket=bucket_name, Key=new_key, CopySource=copy_source)
+
+        print(f'Renamed: {old_key} to {new_key}')
+
+    for subdir in response.get('CommonPrefixes', []):
+        subdirectory = subdir['Prefix']
+        new_subdirectory = subdirectory.replace(prefix, new_prefix)
+        rename_files_recursively(bucket_name, subdirectory, new_subdirectory)
+
+# Specify the bucket name, source prefix, and new prefix
+bucket_name = 'your_bucket_name'
+source_prefix = 'your_folder_path/'
+new_prefix = 'new_folder_path/'
+
+# Call the function to rename files recursively
+rename_files_recursively(bucket_name, source_prefix, new_prefix)

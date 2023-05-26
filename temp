@@ -19,7 +19,10 @@ def lambda_handler(event, context):
     output_prefix = os.environ['OUTPUT_PREFIX']
 
     return processMessage()
-
+    string1 = 'TextAnalysis'
+    #compare string1 case insensitive
+    if string1.lower() == 'textanalysis':
+        print('TextAnalysis')
 
     #Based on the prefix of the file name, determine the type of document
     #and use the appropriate textract function to analyse the document
@@ -58,22 +61,28 @@ def processMessage():
 
 #Textract AnalyseDocument
 def analyseDocument(bucket, document):
-    response = textract.start_document_analysis(
-        DocumentLocation={
-            'S3Object': {
-                'Bucket': bucket,
-                'Name': document
+    #error handeling
+    
+        
+    except print(0):
+        pass
+    try:
+        response = textract.start_document_analysis(
+            DocumentLocation={
+                'S3Object': {
+                    'Bucket': bucket,
+                    'Name': document
+                }
+            },
+            NotificationChannel={
+                'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
+                'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
+            },
+            OutputConfig={
+                'S3Bucket': bucket,
+                'S3Prefix': 'output'
             }
-        },
-        NotificationChannel={
-            'SNSTopicArn': 'arn:aws:sns:us-east-1:123456789012:AmazonTextract',
-            'RoleArn': 'arn:aws:iam::123456789012:role/AmazonTextractRole'
-        },
-        OutputConfig={
-            'S3Bucket': bucket,
-            'S3Prefix': 'output'
-        }
-    )
+        )
     return response
 
 #TextDetection
@@ -138,3 +147,8 @@ def expenseAnalysis(bucket, document):
         }
     )
     return response
+
+
+#function that recursively encrypt files in a folder and move it to another folder
+def encryptFiles(bucket, folder, key):
+    

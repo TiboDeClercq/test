@@ -1,6 +1,7 @@
 
 import inspect
 import re
+import uuid
 import boto3
 
 #TODO error handeling
@@ -41,7 +42,7 @@ class TextractUploader:
         textract_process = textract_process
         
         #check if S3 bucket exists
-        if self.s3_client.head_bucket(Bucket=bucket_name):
+        # if self.s3_client.head_bucket(Bucket=bucket_name):
         
 
         if _check_textract_service(textract_process):
@@ -63,7 +64,33 @@ class TextractUploader:
         
         # self.s3_client.upload_file(file_path, bucket_name, s3_key)
 
-
+    #move files from one bucket to another
+    def move_file(self, source_bucket, source_key, destination_bucket, destination_key):
+        copy_source = {
+            'Bucket': source_bucket,
+            'Key': source_key
+        }
+        self.s3_client.copy_object(CopySource=copy_source, Bucket=destination_bucket, Key=destination_key)
+        self.s3_client.delete_object(Bucket=source_bucket, Key=source_key)
+        #add metadata to the file
+        self.s3_client.put_object_tagging(
+            Bucket=destination_bucket,
+            Key=destination_key,
+            Tagging={
+                'TagSet': [
+                    {
+                        'Key': 'processID',
+                        'Value': str(uuid.uuid4())
+                    },
+                ]
+            }
+        )
+        
+        
+        
+    #generate a UUID
+    def generate_uuid(self):
+        return str(uuid.uuid4())
     
 
 #print all functions from the textract client
@@ -76,4 +103,17 @@ def _check_textract_service(args):
         else:
             return False
 
-#check if folder exists within a bucket
+#get source bucket and type of textract processed based on the object name
+def _get_source_bucket_and_textract_type(object_name):
+    source_bucket = object_name.split('/')[1]
+    textract_type = object_name.split('/')[5]
+    return source_bucket, textract_type
+
+#query a dynomoDB table and return a list of dictionaries
+def _query_table(table_name, key, value):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(table_name)
+    response = table.query(
+        KeyConditionExpression=Key(key).eq(value)
+    )
+    return response['Items']

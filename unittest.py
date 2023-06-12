@@ -65,3 +65,20 @@ class TestPython(unittest.TestCase):
         #assert
         self.assertEqual(result, 'textract')
         
+    #unit test for _query_table()
+    def test_query_table(self):
+        #setup
+        python = Python()
+        #act
+        result = python._query_table()
+        #assert
+        self.assertEqual(type(result), list)
+
+    #unit test for _get_source_bucket_and_textract_type()
+    def test_get_file_name(self):
+            #setup
+        python = Python()
+        #act
+        result = python._get_file_name()
+        #assert
+        self.assertEqual(type(result), str)

@@ -1,0 +1,71 @@
+from python import TextractUploader
+
+# class TestTextractUploader:
+    #unit test for _create_s3_client()
+def test_create_s3_client(self):
+    #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._create_s3_client()
+    #assert
+    self.assertEqual(type(result), botocore.client.S3)
+    
+#unit test for _check_textract_service()
+def test_check_textract_service(self):
+    #setup
+    
+    textract_uploader = TextractUploader(role_arn='arn:aws:iam::123456789012:role/role-name', session_name='session-name')
+    #act
+    result = textract_uploader._check_textract_service('textract')
+    #assert
+    self.assertEqual(result, 'textract')
+    
+#unit test for _check_textract_service_exception()
+def test_check_textract_service_exception(self):
+    #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._check_textract_service('textract')
+    #assert
+    self.assertEqual(result, 'textract')
+    
+#unit test for _check_textract_service_exception()
+def test_check_textract_service_exception(self):
+    #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._check_textract_service('textract')
+    #assert
+    self.assertEqual(result, 'textract')
+    
+#unit test for _query_table()
+def test_query_table(self):
+    #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._query_table()
+    #assert
+    self.assertEqual(type(result), list)
+
+#unit test for _get_source_bucket_and_textract_type()
+def test_get_file_name(self):
+        #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._get_file_name()
+    #assert
+    self.assertEqual(type(result), str)
+    
+#unit test for _get_source_bucket_and_textract_type()
+def test_get_file_name(self):
+        #setup
+    textract_uploader = TextractUploader()
+    #act
+    result = textract_uploader._get_file_name()
+    #assert
+    self.assertEqual(type(result), str)
+    
+#unit test for _get_source_bucket_and_textract_type()
+def test_get_file_name(self):
+        #setup
+    textract

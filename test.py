@@ -18,4 +18,27 @@ from botocore.exceptions import NoCredentialsError
 def copy_files(source_bucket, destination_bucket, source_prefix, destination_prefix):
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(source_bucket)
-    
+    for obj in bucket.objects.filter(Prefix=source_prefix):
+        #print(obj.key)
+        copy_source = {
+            'Bucket': source_bucket,
+            'Key': obj.key
+        }
+        new_key = obj.key.replace(source_prefix, destination_prefix)
+        s3.meta.client.copy(copy_source, destination_bucket, new_key)
+        #add metadata to the file
+        s3.meta.client.put_object_tagging(
+            Bucket=destination_bucket,
+            Key=new_key,
+            Tagging={
+                'TagSet': [
+                    {
+                        'Key': 'processID',
+                        'Value': str(uuid.uuid4())
+                    },
+                ]
+            }
+        )
+        #delete the file from the source bucket
+        s3.Object(source_bucket, obj.key).delete()
+        print(f"Moved {obj.key} to {destination_bucket} bucket.")

@@ -1,44 +1,29 @@
-
-import boto3
-import uuid
-import os
-import botocore
-from botocore.exceptions import ClientError
-from botocore.client import Config
-from botocore.client import ClientError
-from botocore.exceptions import NoCredentialsError
-from botocore.exceptions import EndpointConnectionError
-from botocore.exceptions import EndpointConnectionError
-from botocore.exceptions import NoCredentialsError
-
-
-#iterate over a S3 bucket and moves files from 
-# one to another the specific folder in another bucket
-# and tag them with the new bucket name
 def copy_files(source_bucket, destination_bucket, source_prefix, destination_prefix):
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(source_bucket)
-    for obj in bucket.objects.filter(Prefix=source_prefix):
-        #print(obj.key)
-        copy_source = {
-            'Bucket': source_bucket,
-            'Key': obj.key
-        }
-        new_key = obj.key.replace(source_prefix, destination_prefix)
-        s3.meta.client.copy(copy_source, destination_bucket, new_key)
-        #add metadata to the file
-        s3.meta.client.put_object_tagging(
-            Bucket=destination_bucket,
-            Key=new_key,
-            Tagging={
-                'TagSet': [
-                    {
-                        'Key': 'processID',
-                        'Value': str(uuid.uuid4())
-                    },
-                ]
-            }
-        )
+    
+    #create s3 resource
+    s3 = boto3.client('s3')
+    
+    #get the list of files in the source bucket
+    #with the source prefix
+    source_files = s3.list_objects(Bucket=source_bucket, Prefix=source_prefix)
+
+    #loop through the list of files
+    for file in source_files['Contents']:
+        #get the name of the file
+        file_name = file['Key']
+
+        #create the destination file name
+        destination_file_name = file_name.replace(source_prefix, destination_prefix)
+
+        #copy the file to the destination bucket
+        s3.copy_object(Bucket=destination_bucket, 
+                       CopySource={'Bucket': source_bucket, 'Key': file_name}, 
+                       Key=destination_file_name)
+
+        #tag the file with the new bucket name
+        s3.put_object_tagging(Bucket=destination_bucket, 
+                              Key=destination_file_name,
+                              Tagging={'TagSet': [{'Key': 'Bucket', 'Value': destination_bucket}]})
+
         #delete the file from the source bucket
-        s3.Object(source_bucket, obj.key).delete()
-        print(f"Moved {obj.key} to {destination_bucket} bucket.")
+        s3.delete_object(Bucket=source_bucket, Key=file_name)
